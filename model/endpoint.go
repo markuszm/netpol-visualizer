@@ -6,10 +6,10 @@ type Pod struct {
 	Namespace string
 }
 
-type Allow struct {
+type UnrestrictedEdge struct {
 	From, To Pod
 	// if not specified, allow all ports
 	Port int
 }
 
-type Policies = []Allow
+type Policies = []UnrestrictedEdge

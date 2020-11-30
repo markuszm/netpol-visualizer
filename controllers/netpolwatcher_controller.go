@@ -68,8 +68,8 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	selector := netpol.Spec.PodSelector
 
 	selectedPods := []model.Pod{}
-	ingressEdges := []model.Allow{}
-	egressEdges := []model.Allow{}
+	ingressEdges := []model.UnrestrictedEdge{}
+	egressEdges := []model.UnrestrictedEdge{}
 
 	if selectorIsEmpty(selector) {
 		// select all pods here from namespace
@@ -124,7 +124,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 			if len(ingressRule.From) == 0 {
 				for _, pod := range selectedPods {
 					for _, port := range ports {
-						ingressEdges = append(ingressEdges, model.Allow{
+						ingressEdges = append(ingressEdges, model.UnrestrictedEdge{
 							From: Everything,
 							To:   pod,
 							Port: port,
@@ -175,7 +175,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					for _, ingressPod := range podList.Items {
 						for _, pod := range selectedPods {
 							for _, port := range ports {
-								ingressEdges = append(ingressEdges, model.Allow{
+								ingressEdges = append(ingressEdges, model.UnrestrictedEdge{
 									From: model.Pod{
 										Name:      ingressPod.Name,
 										Namespace: ingressPod.Namespace,
@@ -208,7 +208,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 			if len(egressRule.To) == 0 {
 				for _, pod := range selectedPods {
 					for _, port := range ports {
-						egressEdges = append(egressEdges, model.Allow{
+						egressEdges = append(egressEdges, model.UnrestrictedEdge{
 							From: Everything,
 							To:   pod,
 							Port: port,
@@ -259,7 +259,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					for _, ingressPod := range podList.Items {
 						for _, pod := range selectedPods {
 							for _, port := range ports {
-								egressEdges = append(egressEdges, model.Allow{
+								egressEdges = append(egressEdges, model.UnrestrictedEdge{
 									From: pod,
 									To: model.Pod{
 										Name:      ingressPod.Name,

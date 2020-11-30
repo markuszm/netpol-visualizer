@@ -18,7 +18,7 @@ func (client *Neo4jClient) Insert(policies model.Policies) error {
 	client.log.Info("=> Insert", "policies", policies, "session", client.session)
 	//client.session, _ = client.driver.Session(neo4j.AccessModeWrite)
 	for _, policy := range policies {
-		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:CAN_ACCESS%s]->(to) RETURN from,to`
+		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:IS_UNRESTRICTED%s]->(to) RETURN from,to`
 		var queryString string
 		if policy.Port != 0 {
 			queryString = fmt.Sprintf(queryFmt, " { port: "+strconv.Itoa(policy.Port)+" }")
