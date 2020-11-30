@@ -50,6 +50,8 @@ Go to http://localhost:7474 and enter the following parameters into the *Connect
 - Username: **neo4j**
 - Password: **secret**
 
+In http://localhost:7474/browser > Settings > Graph Visualization, uncheck the setting "Connect result nodes".
+
 Enter Cipher queries to analyze the network policy graph.
 
 ### Controller
