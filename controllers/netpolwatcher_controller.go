@@ -35,12 +35,25 @@ type NetPolWatcherReconciler struct {
 
 // +kubebuilder:rbac:groups=netpol.qaware.com,resources=netpolwatchers,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=netpol.qaware.com,resources=netpolwatchers/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies,verbs=get;list;watch
+// +kubebuilder:rbac:groups=networking.k8s.io,resources=networkpolicies/status,verbs=get
 
 func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+	ctx := context.Background()
 	_ = r.Log.WithValues("netpolwatcher", req.NamespacedName)
 
 	r.Log.Info("Hello Netpol", "Name", req.Name, "Namespace", req.Namespace)
+
+	netpol := v1.NetworkPolicy{}
+	err := r.Client.Get(ctx, client.ObjectKey{
+		Namespace: req.Namespace,
+		Name:      req.Name,
+	}, &netpol)
+	if err != nil {
+		r.Log.Error(err, "Error getting network policy", "Name", req.Name)
+	}
+	r.Log.Info(netpol.String())
+
 	return ctrl.Result{}, nil
 }
 
