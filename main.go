@@ -53,7 +53,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.StringVar(&neo4jUrl, "neo4j", "bolt://neo4j-neo4j.default.svc.cluster.local:7687", "URL to neo4j database")
+	flag.StringVar(&neo4jUrl, "neo4j-url", "bolt://neo4j-neo4j.default.svc.cluster.local:7687", "URL to neo4j database")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))

@@ -32,7 +32,7 @@ minikube docker-env --shell=<your-shell>
 ### Controller
 Run the operator locally:
 ```shell script
-make run
+make run LOCAL=1
 ```
 
 Deploy the controller to the cluster:

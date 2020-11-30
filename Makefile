@@ -13,6 +13,11 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 
 SHELL := /bin/bash
 
+RUN_ARGS :=
+ifeq ($(LOCAL), 1)
+RUN_ARGS += --neo4j-url=bolt://localhost:7687
+endif
+
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
@@ -40,7 +45,7 @@ manager: generate fmt vet
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet manifests
-	go run ./main.go
+	go run ./main.go $(RUN_ARGS)
 
 # Install CRDs into a cluster
 install: manifests kustomize
