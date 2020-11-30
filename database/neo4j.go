@@ -12,6 +12,7 @@ type Neo4jClient struct {
 }
 
 func (client *Neo4jClient) Insert(policies model.Policies) error {
+	client.log.Info("=> Insert", "policies", policies, "session", client.session)
 	result, err := client.session.Run("MATCH (x) RETURN (x)", map[string]interface{}{})
 	if err != nil {
 		client.log.Error(err, "Cipher query failed")
@@ -22,13 +23,13 @@ func (client *Neo4jClient) Insert(policies model.Policies) error {
 	return nil
 }
 
-func NewNeo4jClient(url, username, password string) *Neo4jClient {
+func NewNeo4jClient(url, username, password string, logger logr.Logger) Neo4jClient {
 	driver := createDriver(url, username, password)
-	session, err := driver.NewSession(neo4j.SessionConfig{})
+	session, err := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
 	if err != nil {
 		panic(err)
 	}
-	return &Neo4jClient{session: session}
+	return Neo4jClient{session: session, log: logger}
 }
 
 func createDriver(url, username, password string) neo4j.Driver {

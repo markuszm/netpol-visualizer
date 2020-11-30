@@ -57,7 +57,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 	r.Log.Info(netpol.String())
 
-	var policies model.Policies
+	var policies []model.Allow
 
 	_ = r.Database.Insert(policies)
 

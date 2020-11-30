@@ -70,13 +70,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	var neo4jClient database.Client = database.NewNeo4jClient(neo4jUrl, "neo4j", "secret")
+	neo4jClient := database.NewNeo4jClient(neo4jUrl, "neo4j", "secret", ctrl.Log.WithName("neo4j"))
 
 	if err = (&controllers.NetPolWatcherReconciler{
 		Client:   mgr.GetClient(),
 		Log:      ctrl.Log.WithName("controllers").WithName("NetPolWatcher"),
 		Scheme:   mgr.GetScheme(),
-		Database: neo4jClient,
+		Database: &neo4jClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NetPolWatcher")
 		os.Exit(1)
