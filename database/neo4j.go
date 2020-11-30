@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"github.com/go-logr/logr"
 	"github.com/markuszm/netpol-visualizer/model"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
@@ -16,24 +17,32 @@ func (client *Neo4jClient) Insert(policies model.Policies) error {
 	client.log.Info("=> Insert", "policies", policies, "session", client.session)
 	//client.session, _ = client.driver.Session(neo4j.AccessModeWrite)
 	//defer client.session.Close()
-	result, err := client.session.Run("MATCH (x) RETURN (x)", map[string]interface{}{})
-	if err != nil {
-		client.log.Error(err, "Cipher query failed")
-	}
-
-	var records []map[string]interface{}
-
-	for result.Next() {
-		record, ok := result.Record().Get("x")
-		if !ok {
-			keys, _ := result.Keys()
-			client.log.Error(nil, "no dummy record found", "keys", keys)
+	for _, policy := range policies {
+		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:CAN_ACCESS%s]->(to) RETURN from,to`
+		result, err := client.session.Run(fmt.Sprintf(queryFmt, ""), map[string]interface{}{
+			"fromNamespace": policy.From.Namespace,
+			"fromName":      policy.From.Name,
+			"toNamespace":   policy.To.Namespace,
+			"toName":        policy.To.Name,
+		})
+		if err != nil {
+			client.log.Error(err, "Cipher query failed")
 		}
 
-		records = append(records, record.(neo4j.Node).Props())
-	}
+		var records []map[string]interface{}
 
-	client.log.Info("Cipher query returned result", "session", client.session, "result", records)
+		for result.Next() {
+			record, ok := result.Record().Get("from")
+			if !ok {
+				keys, _ := result.Keys()
+				client.log.Error(nil, "no dummy record found", "keys", keys)
+			}
+
+			records = append(records, record.(neo4j.Node).Props())
+		}
+
+		client.log.Info("Cipher query returned result", "session", client.session, "result", records)
+	}
 	return nil
 }
 
