@@ -1,7 +1,11 @@
 releases:
 - name: neo4j
+  namespace: neo4j
+  createNamespace: true
   chart: helm/neo4j
   values:
   - helm/neo4j/values.yaml.gotmpl
 - name: testing
+  namespace: bookinfo
+  createNamespace: true
   chart: helm/testing

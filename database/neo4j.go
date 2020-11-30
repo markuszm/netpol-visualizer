@@ -16,7 +16,7 @@ type Neo4jClient struct {
 }
 
 func (client *Neo4jClient) Insert(policies model.Policies) error {
-	client.log.Info("=> Insert", "policies", policies, "session", client.session)
+	client.log.Info("=> Insert", "policies.len", len(policies), "session", client.session)
 	//client.session, _ = client.driver.Session(neo4j.AccessModeWrite)
 	for _, policy := range policies {
 		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:%s%s]->(to) RETURN from,to`

@@ -125,9 +125,9 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 				for _, pod := range selectedPods {
 					for _, port := range ports {
 						ingressEdges = append(ingressEdges, model.PolicyEdge{
-							From: Everything,
-							To:   pod,
-							Port: port,
+							From:       Everything,
+							To:         pod,
+							Port:       port,
 							PolicyType: networkingv1.PolicyTypeIngress,
 						})
 					}
@@ -184,8 +184,8 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 										Name:      ingressPod.Name,
 										Namespace: ingressPod.Namespace,
 									},
-									To:   pod,
-									Port: port,
+									To:         pod,
+									Port:       port,
 									PolicyType: networkingv1.PolicyTypeIngress,
 								})
 							}
@@ -214,9 +214,9 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 				for _, pod := range selectedPods {
 					for _, port := range ports {
 						egressEdges = append(egressEdges, model.PolicyEdge{
-							From: Everything,
-							To:   pod,
-							Port: port,
+							From:       Everything,
+							To:         pod,
+							Port:       port,
 							PolicyType: networkingv1.PolicyTypeEgress,
 						})
 					}
@@ -274,7 +274,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 										Name:      egressPod.Name,
 										Namespace: egressPod.Namespace,
 									},
-									Port: port,
+									Port:       port,
 									PolicyType: networkingv1.PolicyTypeEgress,
 								})
 							}
