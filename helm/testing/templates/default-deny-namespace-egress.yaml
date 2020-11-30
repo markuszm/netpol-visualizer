@@ -7,12 +7,12 @@ spec:
   podSelector: {}
   policyTypes:
   - Egress
-  egress: 
-    # allow traffic inside application namespace 
+  egress:
+    # allow traffic inside application namespace
     - to:
-      - namespaceSelector: 
-        matchLabels: 
-          name: platform-edge
+      - namespaceSelector:
+          matchLabels:
+            name: platform-edge
     # allow internal dns traffic
     - ports:
       - port: 53

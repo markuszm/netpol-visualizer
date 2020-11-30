@@ -3,3 +3,5 @@ releases:
   chart: helm/neo4j
   values:
   - helm/neo4j/values.yaml.gotmpl
+- name: testing
+  chart: helm/testing
