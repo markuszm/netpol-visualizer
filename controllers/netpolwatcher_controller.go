@@ -42,7 +42,7 @@ type NetPolWatcherReconciler struct {
 }
 
 var Everything = model.Pod{
-	Name: "EVERYTHING",
+	Name:      "EVERYTHING",
 	Namespace: "EVERYWHERE",
 }
 
@@ -123,10 +123,10 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 			// if no ingress rule specified then for all pods everything is allowed as Ingress
 			if len(ingressRule.From) == 0 {
 				for _, pod := range selectedPods {
-					for _, port := range(ports) {
+					for _, port := range ports {
 						ingressEdges = append(ingressEdges, model.Allow{
 							From: Everything,
-							To: pod,
+							To:   pod,
 							Port: port,
 						})
 					}
@@ -174,7 +174,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					// add ingress edges for each pod from each by network policy selected pod
 					for _, ingressPod := range podList.Items {
 						for _, pod := range selectedPods {
-							for _, port := range(ports) {
+							for _, port := range ports {
 								ingressEdges = append(ingressEdges, model.Allow{
 									From: model.Pod{
 										Name:      ingressPod.Name,
@@ -207,10 +207,10 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 			// if no ingress rule specified then for all pods everything is allowed as Ingress
 			if len(egressRule.To) == 0 {
 				for _, pod := range selectedPods {
-					for _, port := range(ports) {
+					for _, port := range ports {
 						egressEdges = append(egressEdges, model.Allow{
 							From: Everything,
-							To: pod,
+							To:   pod,
 							Port: port,
 						})
 					}
@@ -258,10 +258,10 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					// add ingress edges for each pod from each by network policy selected pod
 					for _, ingressPod := range podList.Items {
 						for _, pod := range selectedPods {
-							for _, port := range(ports) {
+							for _, port := range ports {
 								egressEdges = append(egressEdges, model.Allow{
 									From: pod,
-									To:   model.Pod{
+									To: model.Pod{
 										Name:      ingressPod.Name,
 										Namespace: ingressPod.Namespace,
 									},
@@ -276,11 +276,11 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	}
 
 	for _, edge := range ingressEdges {
-		r.Log.Info(fmt.Sprintf("Create Ingress Edge: From: %s/%s To: %s/%s Port: %s", edge.From.Namespace, edge.From.Name, edge.To.Namespace, edge.To.Name, edge.Port), "Name", req.NamespacedName.String())
+		r.Log.Info(fmt.Sprintf("Create Ingress Edge: From: %s/%s To: %s/%s Port: %v", edge.From.Namespace, edge.From.Name, edge.To.Namespace, edge.To.Name, edge.Port), "Name", req.NamespacedName.String())
 	}
 
 	for _, edge := range egressEdges {
-		r.Log.Info(fmt.Sprintf("Create Egress Edge: From: %s/%s To: %s/%s Port: %s", edge.From.Namespace, edge.From.Name, edge.To.Namespace, edge.To.Name, edge.Port), "Name", req.NamespacedName.String())
+		r.Log.Info(fmt.Sprintf("Create Egress Edge: From: %s/%s To: %s/%s Port: %v", edge.From.Namespace, edge.From.Name, edge.To.Namespace, edge.To.Name, edge.Port), "Name", req.NamespacedName.String())
 	}
 
 	//var policies []model.Allow
