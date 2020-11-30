@@ -22,9 +22,19 @@ kubectl config use-context minikube
 ```
 
 ## Run
+
+### Helmfile
+
 Deploy or update the helm releases:
 ```shell script
 helmfile apply
 ```
 
+### Neo4J
+Get access to running Neo4J instance:
+```shell script
+kubectl port-forward svc/neo4j-neo4j 7474:7474 7687:7687
+```
+
+Log in at http://localhost:7474 with username *neo4j* and password *secret*.
 ...
