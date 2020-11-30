@@ -204,7 +204,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 			if len(ports) == 0 {
 				ports = append(ports, 0)
 			}
-			// if no ingress rule specified then for all pods everything is allowed as Ingress
+			// if no ingress rule specified then for all pods everything is allowed as Egress
 			if len(egressRule.To) == 0 {
 				for _, pod := range selectedPods {
 					for _, port := range ports {
@@ -324,14 +324,13 @@ func labelSelectorOperatorToSelectorOperator(op metav1.LabelSelectorOperator) se
 }
 
 func labelSelectorToListOptions(selector metav1.LabelSelector) ([]client.ListOption, error) {
-	listOptions := []client.ListOption{}
+	var listOptions []client.ListOption
 	labelsSelector := labels.NewSelector()
 	for _, labelSelectorRequirement := range selector.MatchExpressions {
 		requirement, err := labels.NewRequirement(labelSelectorRequirement.Key, labelSelectorOperatorToSelectorOperator(labelSelectorRequirement.Operator), labelSelectorRequirement.Values)
-		if err != nil {
-			return listOptions, err
+		if err == nil {
+			labelsSelector = labelsSelector.Add(*requirement)
 		}
-		labelsSelector = labelsSelector.Add(*requirement)
 	}
 	listOptions = append(listOptions, client.MatchingLabelsSelector{Selector: labelsSelector})
 	if selector.MatchLabels != nil && len(selector.MatchLabels) > 0 {
