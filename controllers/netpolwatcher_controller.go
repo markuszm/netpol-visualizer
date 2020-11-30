@@ -128,6 +128,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 							From: Everything,
 							To:   pod,
 							Port: port,
+							PolicyType: networkingv1.PolicyTypeIngress,
 						})
 					}
 				}
@@ -185,6 +186,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 									},
 									To:   pod,
 									Port: port,
+									PolicyType: networkingv1.PolicyTypeIngress,
 								})
 							}
 						}
@@ -215,6 +217,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 							From: Everything,
 							To:   pod,
 							Port: port,
+							PolicyType: networkingv1.PolicyTypeEgress,
 						})
 					}
 				}
@@ -272,6 +275,7 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 										Namespace: egressPod.Namespace,
 									},
 									Port: port,
+									PolicyType: networkingv1.PolicyTypeEgress,
 								})
 							}
 						}

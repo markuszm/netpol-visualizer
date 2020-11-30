@@ -9,7 +9,9 @@ https://book.kubebuilder.io/cronjob-tutorial/api-design.html
 Controller Design - Example:
 https://book.kubebuilder.io/cronjob-tutorial/controller-implementation.html
 
-## Install
+API not used at the moment.
+
+## Setup
 Install the following tools:
 - helm
 - helmfile
