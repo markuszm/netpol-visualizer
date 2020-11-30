@@ -1,0 +1,28 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress-specific-namespace
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress: 
+    # allow traffic inside application namespace 
+    - to:
+      - namespaceSelector: 
+        matchLabels: 
+          name: platform-edge
+    # allow internal dns traffic
+    - ports:
+      - port: 53
+        protocol: UDP
+      - port: 53
+        protocol: TCP
+      to:
+      - namespaceSelector:
+          matchLabels:
+            name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns  # needs to be coredns

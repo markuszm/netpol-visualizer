@@ -1,0 +1,51 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-reviews-from-productpage
+  namespace: bookinfo
+spec:
+  podSelector:
+    matchLabels:
+      app: details
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+     - podSelector:
+        matchLabels:
+          app: productpage
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ratings-from-productpage
+  namespace: bookinfo
+spec:
+  podSelector:
+    matchLabels:
+      app: reviews
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+     - podSelector:
+        matchLabels:
+          app: productpage
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-reviews-from-ratings
+  namespace: bookinfo
+spec:
+  podSelector:
+    matchLabels:
+      app: ratings
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+     - podSelector:
+        matchLabels:
+          app: reviews
