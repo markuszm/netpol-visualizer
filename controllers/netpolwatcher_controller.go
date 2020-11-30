@@ -283,9 +283,16 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		r.Log.Info(fmt.Sprintf("Create Egress Edge: From: %s/%s To: %s/%s Port: %v", edge.From.Namespace, edge.From.Name, edge.To.Namespace, edge.To.Name, edge.Port), "Name", req.NamespacedName.String())
 	}
 
-	//var policies []model.Allow
-	//
-	//_ = r.Database.Insert(policies)
+	r.Log.Info("Trying to insert ingress edges")
+	err = r.Database.Insert(ingressEdges)
+	if err != nil {
+		r.Log.Error(err, "Error inserting ingress edges", "Name", req.NamespacedName)
+	}
+	r.Log.Info("Trying to insert egress edges")
+	err = r.Database.Insert(egressEdges)
+	if err != nil {
+		r.Log.Error(err, "Error inserting egress edges", "Name", req.NamespacedName)
+	}
 
 	return ctrl.Result{}, nil
 }
