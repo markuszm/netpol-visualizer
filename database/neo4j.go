@@ -5,6 +5,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/markuszm/netpol-visualizer/model"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
+	"strconv"
 )
 
 type Neo4jClient struct {
@@ -16,10 +17,15 @@ type Neo4jClient struct {
 func (client *Neo4jClient) Insert(policies model.Policies) error {
 	client.log.Info("=> Insert", "policies", policies, "session", client.session)
 	//client.session, _ = client.driver.Session(neo4j.AccessModeWrite)
-	//defer client.session.Close()
 	for _, policy := range policies {
 		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:CAN_ACCESS%s]->(to) RETURN from,to`
-		result, err := client.session.Run(fmt.Sprintf(queryFmt, ""), map[string]interface{}{
+		var queryString string
+		if policy.Port != 0 {
+			queryString = fmt.Sprintf(queryFmt, " { port: "+strconv.Itoa(policy.Port)+" }")
+		} else {
+			queryString = fmt.Sprintf(queryFmt, "")
+		}
+		result, err := client.session.Run(queryString, map[string]interface{}{
 			"fromNamespace": policy.From.Namespace,
 			"fromName":      policy.From.Name,
 			"toNamespace":   policy.To.Namespace,
@@ -52,7 +58,7 @@ func NewNeo4jClient(url, username, password string, logger logr.Logger) Neo4jCli
 	if err != nil {
 		panic(err)
 	}
-	session, err := driver.NewSession(neo4j.SessionConfig{AccessMode: neo4j.AccessModeWrite})
+	session, err := driver.Session(neo4j.AccessModeWrite)
 	if err != nil {
 		panic(err)
 	}
