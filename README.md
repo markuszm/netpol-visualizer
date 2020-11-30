@@ -36,5 +36,8 @@ Get access to running Neo4J instance:
 kubectl port-forward svc/neo4j-neo4j 7474:7474 7687:7687
 ```
 
-Log in at http://localhost:7474 with username *neo4j* and password *secret*.
-...
+Go to http://localhost:7474 and enter the following parameters into the *Connect to Neo4J* window:
+- Connect URL: **neo4j://localhost:7687**
+- Username: **neo4j**
+- Password: **secret**
+
