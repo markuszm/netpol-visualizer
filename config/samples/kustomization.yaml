@@ -1,0 +1,4 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- netpol_v1_netpolwatcher.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

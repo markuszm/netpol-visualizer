@@ -1,0 +1,24 @@
+# permissions for end users to edit netpolwatchers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: netpolwatcher-editor-role
+rules:
+- apiGroups:
+  - netpol.qaware.com
+  resources:
+  - netpolwatchers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - netpol.qaware.com
+  resources:
+  - netpolwatchers/status
+  verbs:
+  - get

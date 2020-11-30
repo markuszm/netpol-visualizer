@@ -1,0 +1,7 @@
+apiVersion: netpol.qaware.com/v1
+kind: NetPolWatcher
+metadata:
+  name: netpolwatcher-sample
+spec:
+  # Add fields here
+  foo: bar
