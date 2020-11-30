@@ -29,6 +29,7 @@ import (
 
 	netpolv1 "github.com/markuszm/netpol-visualizer/api/v1"
 	"github.com/markuszm/netpol-visualizer/controllers"
+	"github.com/markuszm/netpol-visualizer/database"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -47,10 +48,12 @@ func init() {
 func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
+	var neo4jUrl string
 	flag.StringVar(&metricsAddr, "metrics-addr", ":8080", "The address the metric endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "enable-leader-election", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.StringVar(&neo4jUrl, "neo4j", "bolt://neo4j-neo4j.default.svc.cluster.local:7687", "URL to neo4j database")
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseDevMode(true)))
@@ -67,10 +70,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	var neo4jClient database.Client = database.CreateNeo4j(neo4jUrl, "neo4j", "secret")
+
 	if err = (&controllers.NetPolWatcherReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("NetPolWatcher"),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Log:      ctrl.Log.WithName("controllers").WithName("NetPolWatcher"),
+		Scheme:   mgr.GetScheme(),
+		Database: neo4jClient,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "NetPolWatcher")
 		os.Exit(1)

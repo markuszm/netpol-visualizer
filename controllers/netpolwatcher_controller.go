@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"github.com/markuszm/netpol-visualizer/database"
+	"github.com/markuszm/netpol-visualizer/model"
 	v1 "k8s.io/api/networking/v1"
 
 	"github.com/go-logr/logr"
@@ -29,8 +31,9 @@ import (
 // NetPolWatcherReconciler reconciles a NetPolWatcher object
 type NetPolWatcherReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log      logr.Logger
+	Scheme   *runtime.Scheme
+	Database database.Client
 }
 
 // +kubebuilder:rbac:groups=netpol.qaware.com,resources=netpolwatchers,verbs=get;list;watch;create;update;patch;delete
@@ -53,6 +56,10 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 		r.Log.Error(err, "Error getting network policy", "Name", req.Name)
 	}
 	r.Log.Info(netpol.String())
+
+	var policies model.Policies
+
+	_ = r.Database.Insert(policies)
 
 	return ctrl.Result{}, nil
 }
