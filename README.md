@@ -9,11 +9,13 @@ https://book.kubebuilder.io/cronjob-tutorial/api-design.html
 Controller Design - Example:
 https://book.kubebuilder.io/cronjob-tutorial/controller-implementation.html
 
-## Setup
+## Install
 Install the following tools:
 - helm
 - helmfile
 - minikube
+
+## Setup
 
 Run the commands:
 ```shell script
@@ -28,17 +30,6 @@ minikube docker-env --shell=<your-shell>
 ```
 
 ## Run
-
-### Controller
-Run the operator locally:
-```shell script
-make run LOCAL=1
-```
-
-Deploy the controller to the cluster:
-```shell script
-make docker-build deploy
-```
 
 ### Helmfile
 Deploy or update the helm releases:
@@ -57,3 +48,13 @@ Go to http://localhost:7474 and enter the following parameters into the *Connect
 - Username: **neo4j**
 - Password: **secret**
 
+### Controller
+Run the operator locally:
+```shell script
+make run LOCAL=1
+```
+
+Deploy the controller to the cluster:
+```shell script
+make docker-build deploy
+```

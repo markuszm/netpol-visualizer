@@ -10,7 +10,7 @@ type Pod struct {
 
 type PolicyEdge struct {
 	PolicyType v1.PolicyType
-	From, To Pod
+	From, To   Pod
 	// if not specified, allow all ports
 	Port int
 }

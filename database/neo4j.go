@@ -5,6 +5,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/markuszm/netpol-visualizer/model"
 	"github.com/neo4j/neo4j-go-driver/neo4j"
+	v1 "k8s.io/api/networking/v1"
 	"strconv"
 )
 
@@ -18,13 +19,22 @@ func (client *Neo4jClient) Insert(policies model.Policies) error {
 	client.log.Info("=> Insert", "policies", policies, "session", client.session)
 	//client.session, _ = client.driver.Session(neo4j.AccessModeWrite)
 	for _, policy := range policies {
-		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:IS_UNRESTRICTED%s]->(to) RETURN from,to`
-		var queryString string
+		queryFmt := `MERGE (from:Pod {namespace: $fromNamespace,name: $fromName}) MERGE (to:Pod {namespace: $toNamespace,name: $toName}) MERGE (from)-[:%s%s]->(to) RETURN from,to`
+		var queryEdgeProps string
 		if policy.Port != 0 {
-			queryString = fmt.Sprintf(queryFmt, " { port: "+strconv.Itoa(policy.Port)+" }")
+
+			queryEdgeProps = " { port: " + strconv.Itoa(policy.Port) + " }"
 		} else {
-			queryString = fmt.Sprintf(queryFmt, "")
+			queryEdgeProps = ""
 		}
+		var queryEdgeType string
+		if policy.PolicyType == v1.PolicyTypeIngress {
+			queryEdgeType = "INGRESS_ALLOWED"
+		} else if policy.PolicyType == v1.PolicyTypeEgress {
+			queryEdgeType = "EGRESS_ALLOWED"
+		}
+
+		queryString := fmt.Sprintf(queryFmt, queryEdgeType, queryEdgeProps)
 		result, err := client.session.Run(queryString, map[string]interface{}{
 			"fromNamespace": policy.From.Namespace,
 			"fromName":      policy.From.Name,
