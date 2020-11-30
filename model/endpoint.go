@@ -1,14 +1,15 @@
 package model
 
-type Endpoint struct {
+type Pod struct {
 	// Key string
 	Name      string
 	Namespace string
-	Port      int
 }
 
 type Allow struct {
-	e1, e2 Endpoint
+	from, to Pod
+	// if not specified, allow all ports
+	port     int
 }
 
 type Policies struct {

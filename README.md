@@ -19,15 +19,25 @@ Run the commands:
 ```shell script
 minikube start
 kubectl config use-context minikube
+```
+
+Set up Docker and CRDs:
+```shell script
 make install
+minikube docker-env --shell=<your-shell>
 ```
 
 ## Run
 
 ### Controller
-Run the operator in the cluster:
+Run the operator locally:
 ```shell script
 make run
+```
+
+Deploy the controller to the cluster:
+```shell script
+make docker-build deploy
 ```
 
 ### Helmfile

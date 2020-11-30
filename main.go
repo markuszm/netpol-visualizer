@@ -70,7 +70,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var neo4jClient database.Client = database.CreateNeo4j(neo4jUrl, "neo4j", "secret")
+	var neo4jClient database.Client = database.NewNeo4jClient(neo4jUrl, "neo4j", "secret")
 
 	if err = (&controllers.NetPolWatcherReconciler{
 		Client:   mgr.GetClient(),
