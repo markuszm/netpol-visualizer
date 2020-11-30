@@ -19,12 +19,18 @@ Run the commands:
 ```shell script
 minikube start
 kubectl config use-context minikube
+make install
 ```
 
 ## Run
 
-### Helmfile
+### Controller
+Run the operator in the cluster:
+```shell script
+make run
+```
 
+### Helmfile
 Deploy or update the helm releases:
 ```shell script
 helmfile apply
