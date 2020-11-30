@@ -7,9 +7,9 @@ type Pod struct {
 }
 
 type Allow struct {
-	from, to Pod
+	From, To Pod
 	// if not specified, allow all ports
-	port int
+	Port int
 }
 
 type Policies = []Allow
