@@ -175,6 +175,9 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					for _, ingressPod := range podList.Items {
 						for _, pod := range selectedPods {
 							for _, port := range ports {
+								if ingressPod.Name == pod.Name {
+									continue
+								}
 								ingressEdges = append(ingressEdges, model.UnrestrictedEdge{
 									From: model.Pod{
 										Name:      ingressPod.Name,
@@ -256,14 +259,17 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 					}
 
 					// add ingress edges for each pod from each by network policy selected pod
-					for _, ingressPod := range podList.Items {
+					for _, egressPod := range podList.Items {
 						for _, pod := range selectedPods {
 							for _, port := range ports {
+								if egressPod.Name == pod.Name {
+									continue
+								}
 								egressEdges = append(egressEdges, model.UnrestrictedEdge{
 									From: pod,
 									To: model.Pod{
-										Name:      ingressPod.Name,
-										Namespace: ingressPod.Namespace,
+										Name:      egressPod.Name,
+										Namespace: egressPod.Namespace,
 									},
 									Port: port,
 								})
