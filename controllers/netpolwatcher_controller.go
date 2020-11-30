@@ -18,13 +18,12 @@ package controllers
 
 import (
 	"context"
+	v1 "k8s.io/api/networking/v1"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	netpolv1 "github.com/markuszm/netpol-visualizer/api/v1"
 )
 
 // NetPolWatcherReconciler reconciles a NetPolWatcher object
@@ -41,13 +40,12 @@ func (r *NetPolWatcherReconciler) Reconcile(req ctrl.Request) (ctrl.Result, erro
 	_ = context.Background()
 	_ = r.Log.WithValues("netpolwatcher", req.NamespacedName)
 
-	// your logic here
-
+	r.Log.Info("Hello Netpol", "Name", req.Name, "Namespace", req.Namespace)
 	return ctrl.Result{}, nil
 }
 
 func (r *NetPolWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&netpolv1.NetPolWatcher{}).
+		For(&v1.NetworkPolicy{}).
 		Complete(r)
 }
