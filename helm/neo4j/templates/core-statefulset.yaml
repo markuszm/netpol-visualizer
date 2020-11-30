@@ -1,0 +1,222 @@
+apiVersion: "apps/v1"
+kind: StatefulSet
+metadata:
+  name: "{{ template "neo4j.core.fullname" . }}"
+  labels:
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/name: {{ template "neo4j.name" . }}
+    app.kubernetes.io/component: core
+spec:
+  podManagementPolicy: Parallel
+  serviceName: {{ template "neo4j.fullname" . }}
+  {{- if .Values.core.standalone }}
+  replicas: 1
+  {{- else }}
+  replicas: {{ .Values.core.numberOfServers }}
+  {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/name: {{ template "neo4j.name" . }}
+      app.kubernetes.io/component: core
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        app.kubernetes.io/name: {{ template "neo4j.name" . }}
+        app.kubernetes.io/component: core
+        {{-  range $key, $value := .Values.podLabels }}
+        {{ $key }}: "{{ $value }}"
+        {{- end }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{-  range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: "{{ $value }}"
+        {{- end }}
+      {{- end }}
+    spec:
+      serviceAccountName: "{{ template "neo4j.fullname" . }}-sa"
+      # High value permits checkpointing on Neo4j shutdown.  See: https://neo4j.com/developer/kb/checkpointing-and-log-pruning-interactions/
+      terminationGracePeriodSeconds: {{ .Values.core.terminationGracePeriodSeconds }}
+      containers:
+      - name: {{ template "neo4j.fullname" . }}
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        imagePullPolicy: "{{ .Values.imagePullPolicy }}"
+        envFrom:
+          - configMapRef:
+              name: {{ template "neo4j.commonConfig.fullname" . }}
+          - configMapRef:
+              name: {{ template "neo4j.coreConfig.fullname" . }}
+          {{- if .Values.core.configMap }}
+          - configMapRef:
+              name: "{{ .Values.core.configMap }}"
+          {{- end }}
+          {{- if .Values.core.envFrom }}{{ toYaml .Values.core.envFrom | nindent 10 }}{{- end }}
+        env:
+          {{- if .Values.authEnabled }}
+          - name: NEO4J_SECRETS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                {{- if .Values.existingPasswordSecret }}
+                name: {{ .Values.existingPasswordSecret }}
+                {{- else }}
+                name: {{ template "neo4j.secrets.fullname" . }}
+                {{- end}}
+                key: neo4j-password
+          {{- end }}      
+        command:
+          - "/bin/bash"
+          - "-c"
+          - |
+            export core_idx=$(hostname | sed 's|.*-||')
+
+            # Processes key configuration elements and exports env vars we need.
+            . /helm-init/init.sh
+
+            {{- if not .Values.core.standalone }}
+            # We advertise the discovery-lb addresses (see discovery-lb.yaml) because
+            # it is for internal cluster comms and is limited to private ports.
+            export DISCOVERY_HOST="discovery-{{ template "neo4j.fullname" . }}-${core_idx}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}"
+            export NEO4J_causal__clustering_discovery__advertised__address="$DISCOVERY_HOST:5000"
+            export NEO4J_causal__clustering_transaction__advertised__address="$DISCOVERY_HOST:6000"
+            export NEO4J_causal__clustering_raft__advertised__address="$DISCOVERY_HOST:7000"
+            {{- end }}
+
+            echo "Starting Neo4j CORE $core_idx on $HOST"
+            exec /docker-entrypoint.sh "neo4j"
+        ports:
+        - containerPort: 5000
+          name: tcp-discovery
+        - containerPort: 7000
+          name: tcp-raft
+        - containerPort: 6000
+          name: tcp-tx
+        - containerPort: 7474
+          name: tcp-browser
+        - containerPort: 7687
+          name: tcp-bolt
+        {{- if .Values.metrics.prometheus.enabled }}
+        - containerPort: 2004
+          name: tcp-prometheus
+        {{- end }}
+        {{- if .Values.metrics.graphite.enabled }}
+        - containerPort: 2003
+          name: tcp-graphite
+        {{- end }}
+        {{- if .Values.metrics.jmx.enabled }}
+        - containerPort: 3637
+          name: tcp-jmx
+        {{- end }}
+        volumeMounts:
+        - name: init-script
+          mountPath: /helm-init
+        - name: datadir
+          mountPath: "{{ .Values.core.persistentVolume.mountPath }}"
+          {{- if .Values.core.persistentVolume.subPath }}
+          subPath: {{ .Values.core.persistentVolume.subPath }}
+          {{- end }}
+        - name: plugins
+          mountPath: /plugins
+        {{- if .Values.core.additionalVolumeMounts }}
+{{ toYaml .Values.core.additionalVolumeMounts | indent 8}}
+        {{- end }}
+        readinessProbe:
+{{ toYaml .Values.readinessProbe | indent 10 }}
+        livenessProbe:
+{{ toYaml .Values.livenessProbe | indent 10 }}
+        resources:
+{{ toYaml .Values.core.resources | indent 10 }}
+{{- if .Values.core.sidecarContainers }}
+{{ toYaml .Values.core.sidecarContainers | indent 6 }}
+{{- end }}
+{{- if .Values.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecret }}
+{{- end }}
+      initContainers:
+      {{ if .Values.core.restore.enabled }}
+      - name: restore-from-backup
+        image: "{{ .Values.core.restore.image }}:{{ .Values.core.restore.imageTag }}"
+        imagePullPolicy: Always
+        volumeMounts:
+          - name: datadir
+            mountPath: /data
+          - name: credentials
+            mountPath: /credentials
+            readOnly: true
+        env:
+          - name: DATABASE
+            value: {{ .Values.core.restore.database }}
+          - name: CLOUD_PROVIDER
+            value: {{ .Values.core.restore.cloudProvider }}
+          - name: BUCKET
+            value: {{ .Values.core.restore.bucket }}
+          - name: TIMESTAMP
+            value: "{{ .Values.core.restore.timestamp }}"
+          - name: FORCE_OVERWRITE
+            value: "{{ .Values.core.restore.forceOverwrite }}"
+          - name: PURGE_ON_COMPLETE
+            value: "{{ .Values.core.restore.purgeOnComplete }}"
+      {{ end }}
+{{- if .Values.core.initContainers }}
+{{ toYaml .Values.core.initContainers | indent 6 }}
+{{- end }}
+      volumes:
+        - name: init-script
+          configMap: 
+            name: "{{ .Release.Name }}-init-script"
+        {{ if .Values.core.restore.enabled }}
+        - name: credentials
+          secret:
+            secretName: {{ .Values.core.restore.secretName }}
+            items:
+              - key: credentials
+                path: credentials
+        {{ end }}
+        {{- if not .Values.core.persistentVolume.enabled }}
+        - name: datadir
+          emptyDir: {}
+        {{- end }}
+        - name: plugins
+          emptyDir: {}
+        {{- if .Values.core.additionalVolumes }}
+{{ toYaml .Values.core.additionalVolumes | indent 8}}
+        {{- end }}
+{{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+  {{- if .Values.core.persistentVolume.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: datadir
+        annotations:
+        {{- if .Values.core.persistentVolume.annotations }}
+{{ toYaml .Values.core.persistentVolume.annotations | indent 12 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+      {{- if .Values.core.persistentVolume.storageClass }}
+      {{- if (eq "-" .Values.core.persistentVolume.storageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.core.persistentVolume.storageClass }}"
+      {{- end }}
+      {{- end }}
+        resources:
+          requests:
+            storage: "{{ .Values.core.persistentVolume.size }}"
+  {{- end }}
